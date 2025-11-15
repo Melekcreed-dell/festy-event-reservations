@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - Festy Event{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <a href="{% url 'event_list' %}" class="btn btn-secondary" style="text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Retour aux événements
+    </a>
+    
+    {% if user.is_staff %}
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'event_update' event.id %}" class="btn" style="text-decoration: none; background: #3b82f6; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        
+        {% if event.status != 'CONFIRME' %}
+        <a href="{% url 'event_confirm' event.id %}" class="btn" style="text-decoration: none; background: #10b981; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-check-circle"></i> Confirmer
+        </a>
+        {% endif %}
+        
+        <a href="{% url 'event_delete' event.id %}" class="btn" style="text-decoration: none; background: #ef4444; color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-trash-alt"></i> Supprimer
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if event.image_url %}
+        <img src="{{ event.image_url }}" alt="{{ event.title }}" style="width: 100%; height: 400px; object-fit: cover; border-radius: 10px; margin-bottom: 2rem;">
+    {% else %}
+        <div style="width: 100%; height: 400px; background: linear-gradient(135deg, #ff6b35 0%, #f79256 100%); border-radius: 10px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: center; font-size: 6rem;">
+            
+        </div>
+    {% endif %}
+
+    <h1>{{ event.title }}</h1>
+    <p style="color: #b0b0b0; font-size: 1.1rem; margin-bottom: 2rem;">{{ event.description }}</p>
+
+    <div class="event-detail">
+        <div class="info-item">
+            <div class="info-label"> Date et heure</div>
+            <div class="info-value">{{ event.date|date:"l d F Y à H:i" }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Lieu</div>
+            <div class="info-value">{{ event.location }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Catégorie</div>
+            <div class="info-value">{{ event.get_category_display }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Prix par personne</div>
+            <div class="info-value">{{ event.price_per_person }} TND</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Capacité totale</div>
+            <div class="info-value">{{ event.capacity }} places</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Places disponibles</div>
+            <div class="info-value">{{ event.available_seats }} places</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Participants inscrits</div>
+            <div class="info-value">{{ event.get_registered_count }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label"> Statut</div>
+            <div class="info-value">
+                {% if event.status == 'CONFIRME' %}
+                    <span class="badge badge-success">{{ event.get_status_display }}</span>
+                {% elif event.status == 'ANNULE' %}
+                    <span class="badge badge-danger">{{ event.get_status_display }}</span>
+                {% else %}
+                    <span class="badge badge-warning">{{ event.get_status_display }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+        {% if event.is_available %}
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{% url 'reservation_create' event.id %}" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 3rem;">
+                     Réserver maintenant
+                </a>
+            </div>
+        {% else %}
+            <div class="alert alert-warning" style="margin-top: 2rem;">
+                 Cet événement n'est plus disponible pour la réservation (places épuisées ou événement passé).
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info" style="margin-top: 2rem;">
+            ℹ️ <a href="{% url 'login' %}" style="color: #ff6b35; text-decoration: underline;">Connectez-vous</a> pour réserver une place.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
