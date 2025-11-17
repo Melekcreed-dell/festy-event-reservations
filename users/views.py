@@ -157,24 +157,24 @@ def admin_required(view_func):
 def admin_user_list(request):
     """Liste de tous les utilisateurs avec filtres et recherche"""
     users = User.objects.annotate(
-        reservation_count=Count('reservation')
+        reservation_count=Count('reservations')
     ).order_by('-date_joined')
     
     # Filtres
-    user_type = request.GET.get('type')
+    user_type = request.GET.get('user_type', '')
     if user_type == 'admin':
         users = users.filter(is_staff=True)
     elif user_type == 'client':
         users = users.filter(is_staff=False)
     
-    status = request.GET.get('status')
+    status = request.GET.get('status', '')
     if status == 'active':
         users = users.filter(is_active=True)
     elif status == 'inactive':
         users = users.filter(is_active=False)
     
     # Recherche
-    search = request.GET.get('search')
+    search = request.GET.get('search', '')
     if search:
         users = users.filter(
             Q(username__icontains=search) |
@@ -200,9 +200,9 @@ def admin_user_list(request):
         'admin_count': admin_count,
         'client_count': client_count,
         'active_count': active_count,
-        'search': search or '',
-        'user_type': user_type or '',
-        'status': status or '',
+        'search': search,
+        'user_type': user_type,
+        'status': status,
     }
     
     return render(request, 'users/admin_user_list.html', context)
@@ -222,7 +222,7 @@ def admin_user_detail(request, user_id):
     cancelled_reservations = Reservation.objects.filter(user=user, status='ANNULEE').count()
     
     context = {
-        'user_obj': user,
+        'user_detail': user,
         'reservations': reservations,
         'total_reservations': total_reservations,
         'confirmed_reservations': confirmed_reservations,
@@ -279,7 +279,7 @@ def admin_user_update(request, user_id):
         return redirect('users:admin_user_detail', user_id=user.id)
     
     context = {
-        'user_obj': user,
+        'user_detail': user,
         'action': 'Modifier'
     }
     
@@ -306,7 +306,7 @@ def admin_user_delete(request, user_id):
     reservations_count = Reservation.objects.filter(user=user).count()
     
     context = {
-        'user_obj': user,
+        'user_detail': user,
         'reservations_count': reservations_count,
     }
     

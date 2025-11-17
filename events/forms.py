@@ -1,5 +1,5 @@
 from django import forms
-from .models import Event
+from .models import Event, EventRecommendation
 from django.utils import timezone
 
 class EventForm(forms.ModelForm):
@@ -97,3 +97,98 @@ class EventForm(forms.ModelForm):
             event.save()
         
         return event
+
+
+class RecommendationForm(forms.ModelForm):
+    """Formulaire pour créer et modifier des recommandations"""
+    
+    rating = forms.ChoiceField(
+        choices=[(i, f'{i} étoile{"s" if i > 1 else ""}') for i in range(1, 6)],
+        initial=5,
+        widget=forms.Select(attrs={'class': 'form-control rating-select'}),
+        label='Note générale'
+    )
+    organization_rating = forms.ChoiceField(
+        choices=[(i, f'{i} ★') for i in range(1, 6)],
+        initial=5,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Organisation'
+    )
+    ambiance_rating = forms.ChoiceField(
+        choices=[(i, f'{i} ★') for i in range(1, 6)],
+        initial=5,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Ambiance'
+    )
+    value_rating = forms.ChoiceField(
+        choices=[(i, f'{i} ★') for i in range(1, 6)],
+        initial=5,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Rapport qualité/prix'
+    )
+    venue_rating = forms.ChoiceField(
+        choices=[(i, f'{i} ★') for i in range(1, 6)],
+        initial=5,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Lieu/Emplacement'
+    )
+    
+    class Meta:
+        model = EventRecommendation
+        fields = [
+            'rating',
+            'title',
+            'comment',
+            'organization_rating',
+            'ambiance_rating',
+            'value_rating',
+            'venue_rating',
+            'would_recommend',
+            'tags',
+            'photo_url',
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: Une soirée inoubliable !',
+                'maxlength': '200'
+            }),
+            'comment': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Partagez votre expérience en détail...'
+            }),
+            'would_recommend': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'checked': 'checked'
+            }),
+            'tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: convivial, familial, professionnel'
+            }),
+            'photo_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://exemple.com/photo.jpg (optionnel)'
+            }),
+        }
+        labels = {
+            'title': 'Titre de votre recommandation',
+            'comment': 'Votre avis détaillé',
+            'would_recommend': 'Je recommande cet événement',
+            'tags': 'Mots-clés (séparés par des virgules)',
+            'photo_url': 'Photo (URL)',
+        }
+    
+    def clean_title(self):
+        """Valider le titre"""
+        title = self.cleaned_data.get('title')
+        if title and len(title) < 5:
+            raise forms.ValidationError("Le titre doit contenir au moins 5 caractères.")
+        return title
+    
+    def clean_comment(self):
+        """Valider le commentaire"""
+        comment = self.cleaned_data.get('comment')
+        if comment and len(comment) < 20:
+            raise forms.ValidationError("Votre avis doit contenir au moins 20 caractères pour être utile.")
+        return comment
